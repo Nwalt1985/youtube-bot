@@ -1,0 +1,8 @@
+node_modules
+.serverless
+.env
+package-lock.json
+.vscode
+media
+.DS_Store
+viewBot/.DS_Store

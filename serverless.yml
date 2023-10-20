@@ -1,0 +1,118 @@
+service: youtube-uploader
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-west-2
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:ListObjectsV2
+        - s3:GetObject
+        - s3:DeleteObject
+      Resource: 
+        - arn:aws:s3:::youtube-shorts/*
+        - arn:aws:s3:::youtube-video-thumbnails-brain-morsels/*
+
+    - Effect: Allow
+      Action:
+        - ssm:GetParameter
+        - ssm:GetParameters
+        - ssm:GetParametersByPath
+      Resource:
+        - "arn:aws:ssm:${self:provider.region}:*:parameter/*"
+
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+        - secretsmanager:PutSecretValue
+      Resource:
+        - "arn:aws:secretsmanager:${self:provider.region}:*:secret:*"
+  
+  environment:
+      # AWS_ACCESS_KEY_ID: AKIA3EBRKRV3WQODZF4I
+      # AWS_SECRET_ACCESS_KEY: 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
+      CLIENT_ID: 172597163328-d52emulihu4bg3ncqvpd50ksfn5jhs56.apps.googleusercontent.com
+      CLIENT_SECRET: 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
+  
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+functions:
+  uploadToYouTube:
+    handler: src/index.handler
+    timeout: 900
+    events:
+      - schedule:
+          rate: rate(4 hours)
+          enabled: true
+
+  auth:
+    handler: src/auth.auth
+    events:
+      - http:
+          path: auth
+          method: get
+          cors: true
+          
+  callback:
+    handler: src/auth.callback
+    events:
+      - http:
+          path: callback
+          method: get
+          cors: true
+
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+
+resources:
+  Resources:
+    YoutubeShortsBucketPolicy:
+      Type: "AWS::S3::BucketPolicy"
+      Properties:
+        Bucket: youtube-shorts
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "s3:ListBucket"
+              Resource: "arn:aws:s3:::youtube-shorts"
+              Principal:
+                AWS:
+                  - Fn::GetAtt: [IamRoleLambdaExecution, Arn]
+            - Effect: "Allow"
+              Action:
+                - "s3:GetObject"
+                - "s3:DeleteObject"
+              Resource: "arn:aws:s3:::youtube-shorts/*"
+              Principal:
+                AWS:
+                  - Fn::GetAtt: [IamRoleLambdaExecution, Arn]
+
+    YoutubeThumbnailBucketPolicy:
+      Type: "AWS::S3::BucketPolicy"
+      Properties:
+        Bucket: youtube-video-thumbnails-brain-morsels
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Action:
+                - "s3:ListBucket"
+              Resource: "arn:aws:s3:::youtube-video-thumbnails-brain-morsels"
+              Principal:
+                AWS:
+                  - Fn::GetAtt: [IamRoleLambdaExecution, Arn]
+            - Effect: "Allow"
+              Action:
+                - "s3:GetObject"
+                - "s3:DeleteObject"
+              Resource: "arn:aws:s3:::youtube-video-thumbnails-brain-morsels/*"
+              Principal:
+                AWS:
+                  - Fn::GetAtt: [IamRoleLambdaExecution, Arn]
