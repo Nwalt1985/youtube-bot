@@ -26,15 +26,6 @@ USER_AGENTS = [
     "Mozilla/5.0 (Linux; Android 9; SM-G950F Build/PPR1.180610.011; wv) AppleWebKit/537.36 (KHTML; like Gecko) Version/4.0 Chrome/74.0.3729.157 Mobile Safari/537.36",
 ]
 
-def get_public_ip():
-    try:
-        response = requests.get('https://httpbin.org/ip')
-        time.sleep(3)
-        
-        return response.json().get('origin')
-    except Exception as e:
-        logger.error(f'Error getting public IP: {e}')
-        return 'Unknown'
 
 def renew_tor_ip():
     logger.info(f"Renewing Tor IP...")
@@ -44,10 +35,6 @@ def renew_tor_ip():
             controller.authenticate()
             controller.signal(Signal.NEWNYM)
             time.sleep(float(tor_renew_delay_entry.get()))
-
-            #Log the new IP
-            new_ip = get_public_ip()
-            logger.info(f'New IP address: {new_ip}')
 
     except Exception as e:
         logger.error(f"Failed to renew Tor IP: {str(e)}")
