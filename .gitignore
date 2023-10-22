@@ -6,3 +6,6 @@ package-lock.json
 media
 .DS_Store
 viewBot/.DS_Store
+.webpack
+viewBot/LICENSE.chromedriver
+viewBot/chromedriver

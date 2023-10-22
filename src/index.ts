@@ -61,16 +61,18 @@ exports.handler = async () => {
 		console.log('Success.', JSON.stringify(response, null, 2));
 		
     } catch (error: any) {
-        if (error.code === 401) {
-			console.log('401: Access token expired. Refreshing...');
-
+        
+        if (error.code === 401 || (error.message && error.message.includes('invalid_grant'))) {
+            console.log('401: Access token expired or refresh token is invalid. Manual re-authorization required.');
+    
+            return { message: 'Manual re-authorization required.' };
+        } else {
 			console.log('Uploading. Second try...');
             const youtubeWithNewCredentials = await generateNewToken(accessToken);
 
 			const response = await uploadToYoutube(videoIndex, youtubeWithNewCredentials, videoStream, thumbnailStream);
 
 			console.log('Success.', JSON.stringify(response, null, 2))
-        } else {
             throw error;
         }
     }

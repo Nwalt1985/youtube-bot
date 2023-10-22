@@ -11,15 +11,16 @@ export async function getStoredTokens(): Promise<{ accessToken: string; refreshT
 
     return {
         accessToken: secrets.accessToken,
-        refreshToken: secrets.refreshToken
+        refreshToken: secrets.refreshTokens || [secrets.refreshToken]
     };
 }
 
-export async function storeNewAccessToken(accessToken: string): Promise<void> {
+export async function storeNewTokens(accessToken: string, newRefreshToken?: string[]): Promise<void> {
     const currentSecrets = await getStoredTokens();
     const updatedSecrets = {
         ...currentSecrets,
-        accessToken: accessToken
+        accessToken: accessToken,
+        ...(newRefreshToken ? { refreshTokens: [newRefreshToken, ...currentSecrets.refreshToken] } : {})
     };
     await secretsManager.putSecretValue({
         SecretId: SECRET_NAME,
@@ -33,12 +34,32 @@ export async function generateNewToken(refreshToken: string) {
 		process.env.CLIENT_SECRET,
 	);
 
-	oauth2Client.setCredentials({ refresh_token: refreshToken });
+	
+    let newAccessToken = null;
+    const validRefreshTokens = [];
 
-	const newTokens = await oauth2Client.refreshAccessToken();
-	const newAccessToken = newTokens.credentials.access_token;
-		
-	await storeNewAccessToken(newAccessToken as string);
+    for (const token of refreshToken) {
+        oauth2Client.setCredentials({ refresh_token: token });
+        try {
+            const newTokens = await oauth2Client.refreshAccessToken();
+            
+            newAccessToken = newTokens.credentials.access_token;
+            validRefreshTokens.push(token);
+
+            if (newTokens.credentials.refresh_token) {
+                // If a new refresh token is provided, store it
+                validRefreshTokens.push(newTokens.credentials.refresh_token);
+            }
+            break;
+        } catch (error) {
+            console.log('Failed to refresh using a token, trying next...');
+        }
+    }
+    if (!newAccessToken) {
+        throw new Error('All refresh tokens are invalid. Manual re-authorization required.');
+    }
+    // Store the valid refresh tokens back to Secrets Manager
+    await storeNewTokens(newAccessToken, validRefreshTokens);
 
 	console.log('New access token stored.');
 
