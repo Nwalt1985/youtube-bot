@@ -8,7 +8,6 @@ import { uploadToYoutube } from './upload';
 const s3 = new S3();
 
 const BUCKET_NAME = 'youtube-shorts';
-const THUMBNAIL_BUCKET_NAME = 'youtube-video-thumbnails-brain-morsels';
 
 exports.handler = async () => {
 	const { accessToken, refreshToken } = await getStoredTokens();
@@ -37,26 +36,12 @@ exports.handler = async () => {
 	const videoBuffer = s3Object.Body as Buffer;
 	const videoStream = Readable.from(videoBuffer);
 
-	const { title } = metadata.find((video) => video.id === videoIndex)!;
-
-    const thumbnailFilename = title.toLowerCase().replace(/ /g, "-") + ".png";
-
-    console.log(`Fetching thumbnail ${thumbnailFilename} from S3...`);
-
-    const thumbnailObject = await s3.getObject({
-        Bucket: THUMBNAIL_BUCKET_NAME,
-        Key: thumbnailFilename
-    }).promise();
-
-    const thumbnailBuffer = thumbnailObject.Body as Buffer;
-    const thumbnailStream = Readable.from(thumbnailBuffer);
-
 	try {
 		console.log('Uploading. First try...');
 
 		const youtubeWithNewCredentials = await generateNewToken(refreshToken);
 
-		const response = await uploadToYoutube(videoIndex, youtubeWithNewCredentials, videoStream, thumbnailStream);
+		const response = await uploadToYoutube(videoIndex, youtubeWithNewCredentials, videoStream);
 
 		console.log('Success.', JSON.stringify(response, null, 2));
 		
@@ -70,7 +55,7 @@ exports.handler = async () => {
 			console.log('Uploading. Second try...');
             const youtubeWithNewCredentials = await generateNewToken(refreshToken);
 
-			const response = await uploadToYoutube(videoIndex, youtubeWithNewCredentials, videoStream, thumbnailStream);
+			const response = await uploadToYoutube(videoIndex, youtubeWithNewCredentials, videoStream);
 
 			console.log('Success.', JSON.stringify(response, null, 2))
             throw error;
@@ -82,14 +67,9 @@ exports.handler = async () => {
 		Key: videoKey!
 	}).promise();
 
-	await s3.deleteObject({
-        Bucket: THUMBNAIL_BUCKET_NAME,
-        Key: thumbnailFilename
-    }).promise();
+	console.log('Video short uploaded to Youtube and deleted from S3')
 
-	console.log('Video & thumbnail uploaded to Youtube and deleted from S3')
-
-    return { message: 'Video & thumbnail uploaded to Youtube and deleted from S3' };
+    return { message: 'Video short uploaded to Youtube and deleted from S3' };
 };
 
 
