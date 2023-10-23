@@ -2,11 +2,13 @@
 
 I have a faceless youtube channel that provides educational shorts aimed at children and young adults.
 
-can you generate me 100 interesting, engaging facts with some humour that would be suitable for my channel and that are optimised for SEO. Do not have any repeats. Lay them out in a table with the column format of
+can you generate me 20 positive, interesting, engaging facts about environmental progress  that would be suitable for my channel and that are optimised for SEO. Do not have any repeats. Lay them out in a table with the column format of
 
-title | fact | humour | tags 
+title | fact | detail | subject | type | tags
 
-after you have displayed the table, display a json structure with the table elements in the format of { id, title, tags, desscription }. Ensure that the json objects are in the same order as the table entries. The tags will also need to include the default tags "facts", "interesting", "education", "kids", "stem", "science". The description also needs to be engaging and optimised for SEO and include these hashtags #Shorts #facts #interesting #education #kids #stem #science
+title of the video, the fact, some extra detail about the fact, the fact subject, the type (environmental), tags
+
+after you have displayed the table, display a json structure with the table elements in the format of { id, title, type, subject, tags, description }. Ensure that the json objects are in the same order as the table entries. The tags will also need to include the default tags "facts", "interesting", "education", "kids", "stem", "science". The description also needs to be engaging and optimised for SEO and include these hashtags #Shorts #facts #interesting #education #kids #stem #science. At the end of each description add the text "Find out more about [subject] here:"
 
 Once generated put the JSON into metadata.ts
 
