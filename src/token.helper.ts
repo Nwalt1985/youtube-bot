@@ -17,7 +17,6 @@ export async function getStoredTokens(): Promise<{ accessToken: string; refreshT
     };
 }
 
-
 export async function storeNewTokens(accessToken: string, newRefreshToken?: string[]): Promise<void> {
     const currentSecrets = await getStoredTokens();
     const updatedSecrets = {

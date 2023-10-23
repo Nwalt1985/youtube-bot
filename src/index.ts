@@ -10,7 +10,7 @@ const s3 = new S3();
 const BUCKET_NAME = 'youtube-shorts';
 
 exports.handler = async () => {
-	const { accessToken, refreshToken } = await getStoredTokens();
+	const { refreshToken } = await getStoredTokens();
 
     const s3Params = {
         Bucket: BUCKET_NAME,
@@ -34,17 +34,17 @@ exports.handler = async () => {
     }).promise();
     
 	const videoBuffer = s3Object.Body as Buffer;
-	const videoStream = Readable.from(videoBuffer);
 
-	try {
-		console.log('Uploading. First try...');
-
-		const youtubeWithNewCredentials = await generateNewToken(refreshToken);
-
-		const response = await uploadToYoutube(videoIndex, youtubeWithNewCredentials, videoStream);
-
-		console.log('Success.', JSON.stringify(response, null, 2));
-		
+    try {
+        console.log('Uploading...');
+        
+        const videoStream1 = Readable.from(videoBuffer);  // Create a fresh stream for the first attempt
+        
+        const youtubeWithNewCredentials = await generateNewToken(refreshToken);
+        const response = await uploadToYoutube(videoIndex, youtubeWithNewCredentials, videoStream1);
+        
+        console.log('Success.', JSON.stringify(response, null, 2));
+        
     } catch (error: any) {
         
         if (error.code === 401 || (error.message && error.message.includes('invalid_grant'))) {
@@ -52,12 +52,14 @@ exports.handler = async () => {
     
             return { message: 'Manual re-authorization required.' };
         } else {
-			console.log('Uploading. Second try...');
-            const youtubeWithNewCredentials = await generateNewToken(refreshToken);
-
-			const response = await uploadToYoutube(videoIndex, youtubeWithNewCredentials, videoStream);
-
-			console.log('Success.', JSON.stringify(response, null, 2))
+            // console.log('Uploading. Second try...');
+            
+            // const videoStream2 = Readable.from(videoBuffer);  // Create a new stream for the second attempt
+            
+            // const youtubeWithNewCredentials = await generateNewToken(refreshToken);
+            // const response = await uploadToYoutube(videoIndex, youtubeWithNewCredentials, videoStream2);
+            
+            console.log('Error.', JSON.stringify(error, null, 2))
             throw error;
         }
     }
