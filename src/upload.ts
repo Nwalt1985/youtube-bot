@@ -17,15 +17,15 @@ export async function uploadToYoutube(index: number, youtube: any, videoStream: 
 			snippet: {
 				title,
 				description,
-				tags,
+				tags
 			},
 			status: {
 				privacyStatus: 'public',
-			},
+			}
 		},
 		media: {
 			mimeType: 'video/*',
-			body: videoStream
+			body: videoStream,
 		}
 	});
 

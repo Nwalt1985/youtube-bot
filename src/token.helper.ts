@@ -5,15 +5,18 @@ const secretsManager = new SecretsManager();
 
 const SECRET_NAME = 'youtube-tokens';
 
-export async function getStoredTokens(): Promise<{ accessToken: string; refreshToken: string }> {
+export async function getStoredTokens(): Promise<{ accessToken: string; refreshToken: string[] }> {
     const data = await secretsManager.getSecretValue({ SecretId: SECRET_NAME }).promise();
     const secrets = JSON.parse(data.SecretString!);
 
+    const refreshTokens = Array.isArray(secrets.refreshTokens) ? secrets.refreshTokens : [secrets.refreshToken];
+
     return {
         accessToken: secrets.accessToken,
-        refreshToken: secrets.refreshTokens || [secrets.refreshToken]
+        refreshToken: refreshTokens
     };
 }
+
 
 export async function storeNewTokens(accessToken: string, newRefreshToken?: string[]): Promise<void> {
     const currentSecrets = await getStoredTokens();
@@ -28,7 +31,7 @@ export async function storeNewTokens(accessToken: string, newRefreshToken?: stri
     }).promise();
 }
 
-export async function generateNewToken(refreshToken: string) {
+export async function generateNewToken(refreshToken: string[]) {
 	const oauth2Client = new google.auth.OAuth2(
 		process.env.CLIENT_ID,
 		process.env.CLIENT_SECRET,

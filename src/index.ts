@@ -11,7 +11,7 @@ const BUCKET_NAME = 'youtube-shorts';
 const THUMBNAIL_BUCKET_NAME = 'youtube-video-thumbnails-brain-morsels';
 
 exports.handler = async () => {
-	const { accessToken } = await getStoredTokens();
+	const { accessToken, refreshToken } = await getStoredTokens();
 
     const s3Params = {
         Bucket: BUCKET_NAME,
@@ -54,7 +54,7 @@ exports.handler = async () => {
 	try {
 		console.log('Uploading. First try...');
 
-		const youtubeWithNewCredentials = await generateNewToken(accessToken);
+		const youtubeWithNewCredentials = await generateNewToken(refreshToken);
 
 		const response = await uploadToYoutube(videoIndex, youtubeWithNewCredentials, videoStream, thumbnailStream);
 
@@ -68,7 +68,7 @@ exports.handler = async () => {
             return { message: 'Manual re-authorization required.' };
         } else {
 			console.log('Uploading. Second try...');
-            const youtubeWithNewCredentials = await generateNewToken(accessToken);
+            const youtubeWithNewCredentials = await generateNewToken(refreshToken);
 
 			const response = await uploadToYoutube(videoIndex, youtubeWithNewCredentials, videoStream, thumbnailStream);
 

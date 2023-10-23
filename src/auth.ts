@@ -1,5 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { storeNewTokens } from './token.helper';
 
 dotenv.config();
 
@@ -31,7 +32,9 @@ export const callback = async (event: any) => {
             grant_type: 'authorization_code'
         });
 
-        // Store response.data.access_token and response.data.refresh_token securely!
+        // Store received tokens in the Secrets Manager
+        await storeNewTokens(data.access_token, [data.refresh_token]);
+
         return {
             statusCode: 200,
             body: JSON.stringify(data, null, 2)

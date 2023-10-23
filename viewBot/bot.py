@@ -90,7 +90,11 @@ def start_bot():
 
             try:
                 browser = webdriver.Chrome(options=chrome_options)
+                # browser.get('https://httpbin.org/ip')
+                # time.sleep(3)
+
                 browser.get(link)
+
                 logger.info(f"Navigating to video link: {link}")
 
                 # Introduce a delay before moving to the next video
