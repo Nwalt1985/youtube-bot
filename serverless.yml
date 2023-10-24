@@ -30,10 +30,8 @@ provider:
         - "arn:aws:secretsmanager:${self:provider.region}:*:secret:*"
   
   environment:
-      # AWS_ACCESS_KEY_ID: AKIA3EBRKRV3WQODZF4I
-      # AWS_SECRET_ACCESS_KEY: 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
-      CLIENT_ID: 172597163328-d52emulihu4bg3ncqvpd50ksfn5jhs56.apps.googleusercontent.com
-      CLIENT_SECRET: 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
+      CLIENT_ID: ${ssm:CLIENT_ID, env:CLIENT_ID}
+      CLIENT_SECRET: ${ssm:CLIENT_SECRET, env:CLIENT_SECRET}
   
 plugins:
   - serverless-webpack
@@ -46,7 +44,7 @@ functions:
     events:
       - schedule:
           rate: rate(4 hours)
-          enabled: false
+          enabled: true
 
   auth:
     handler: src/auth.auth
